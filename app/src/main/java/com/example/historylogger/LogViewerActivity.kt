@@ -1,143 +1,116 @@
 package com.example.historylogger
 
-import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.os.Environment
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.ScrollView
-import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import java.io.File
-import java.io.FileOutputStream
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+
+class LogAdapter(private val logs: List<LogEntry>, private val isDarkMode: Boolean) :
+    RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
+
+    class LogViewHolder(val textView: android.widget.TextView) :
+        RecyclerView.ViewHolder(textView)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
+        val textView = android.widget.TextView(parent.context).apply {
+            textSize = 14f
+            setPadding(24, 16, 24, 16)
+            layoutParams = RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+        return LogViewHolder(textView)
+    }
+
+    override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
+        val log = logs[position]
+        holder.textView.text = "${log.timestamp} | [${log.type}] ${log.message}"
+
+        // Background by theme
+        holder.textView.setBackgroundColor(if (isDarkMode) Color.BLACK else Color.WHITE)
+
+        // Color coding by type
+        when (log.type.uppercase()) {
+            "SAFE_MODE" -> holder.textView.setTextColor(Color.RED)
+            "SECURITY" -> holder.textView.setTextColor(Color.parseColor("#FF4500")) // orange-red
+            else -> holder.textView.setTextColor(if (isDarkMode) Color.GREEN else Color.BLACK)
+        }
+    }
+
+    override fun getItemCount() = logs.size
+}
 
 class LogViewerActivity : AppCompatActivity() {
 
-    private lateinit var textView: TextView
-    private lateinit var scrollView: ScrollView
-    private var isDarkMode = false  // ✅ Track current mode
+    private lateinit var recyclerView: RecyclerView
+    private var isDarkMode = false
+    private var logs: MutableList<LogEntry> = mutableListOf()
+    private lateinit var adapter: LogAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Layout container
+        // Root layout
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(32, 32, 32, 32)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
         }
 
-        // ✅ TextView for logs
-        textView = TextView(this).apply {
-            textSize = 14f
-            setPadding(16, 16, 16, 16)
-        }
-
-        // ✅ ScrollView wrapper
-        scrollView = ScrollView(this).apply {
-            addView(textView)
-        }
-
-        // ✅ Refresh button
+        // Buttons
         val refreshButton = Button(this).apply {
             text = "Refresh Logs"
-            setOnClickListener { loadLogs() }
+            setOnClickListener { loadLogsAndRefreshUI() }
         }
 
-        // ✅ Share button
-        val shareButton = Button(this).apply {
-            text = "Share Logs"
-            setOnClickListener { shareLogs() }
-        }
-
-        // ✅ Export button
-        val exportButton = Button(this).apply {
-            text = "Export Logs"
-            setOnClickListener { exportLogs() }
-        }
-
-        // ✅ Dark Mode toggle button
-        val toggleButton = Button(this).apply {
+        val toggleDarkButton = Button(this).apply {
             text = "Toggle Dark Mode"
-            setOnClickListener { toggleDarkMode() }
+            setOnClickListener {
+                isDarkMode = !isDarkMode
+                applyThemeColors(layout)
+                adapter = LogAdapter(logs, isDarkMode)
+                recyclerView.adapter = adapter
+            }
         }
 
-        // ✅ Add views to layout
-        layout.addView(refreshButton)
-        layout.addView(shareButton)
-        layout.addView(exportButton)
-        layout.addView(toggleButton)
-        layout.addView(scrollView)
+        // RecyclerView
+        recyclerView = RecyclerView(this).apply {
+            layoutManager = LinearLayoutManager(this@LogViewerActivity)
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                0,
+                1f
+            )
+        }
 
+        // Assemble layout
+        layout.addView(refreshButton)
+        layout.addView(toggleDarkButton)
+        layout.addView(recyclerView)
         setContentView(layout)
 
-        // ✅ Initial load
-        loadLogs()
+        // Initial
+        applyThemeColors(layout)
+        loadLogsAndRefreshUI()
     }
 
-    private fun loadLogs() {
-        val logFile = File(filesDir, "activity_log.txt")
-        if (logFile.exists()) {
-            val logs = logFile.readText()
-            textView.text = logs
-
-            // ✅ Auto-scroll to bottom (latest log)
-            scrollView.post {
-                scrollView.fullScroll(ScrollView.FOCUS_DOWN)
-            }
-        } else {
-            textView.text = "No logs found yet."
-        }
+    private fun applyThemeColors(root: LinearLayout) {
+        root.setBackgroundColor(if (isDarkMode) Color.BLACK else Color.WHITE)
     }
 
-    private fun shareLogs() {
-        val logFile = File(filesDir, "activity_log.txt")
-        if (logFile.exists()) {
-            val logs = logFile.readText()
-            val shareIntent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, logs)
-                type = "text/plain"
-            }
-            startActivity(Intent.createChooser(shareIntent, "Share logs via"))
-        } else {
-            Toast.makeText(this, "No logs to share.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun exportLogs() {
-        val logFile = File(filesDir, "activity_log.txt")
-        if (logFile.exists()) {
-            val logs = logFile.readText()
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val exportFile = File(downloadsDir, "activity_log_export.txt")
-
-            try {
-                FileOutputStream(exportFile).bufferedWriter().use { writer ->
-                    writer.write(logs)
-                }
-                Toast.makeText(this, "Logs exported to Downloads folder.", Toast.LENGTH_LONG).show()
-            } catch (e: Exception) {
-                Toast.makeText(this, "Export failed: ${e.message}", Toast.LENGTH_LONG).show()
-            }
-        } else {
-            Toast.makeText(this, "No logs to export.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // ✅ Toggle Dark Mode
-    private fun toggleDarkMode() {
-        if (isDarkMode) {
-            // Switch to Light Mode
-            scrollView.setBackgroundColor(Color.WHITE)
-            textView.setTextColor(Color.BLACK)
-            isDarkMode = false
-        } else {
-            // Switch to Dark Mode
-            scrollView.setBackgroundColor(Color.BLACK)
-            textView.setTextColor(Color.GREEN) // neon green for readability
-            isDarkMode = true
-        }
+    private fun loadLogsAndRefreshUI() {
+        val allowed = setOf("SAFE_MODE", "SECURITY")
+        logs = readStructuredLogs(this, allowed).toMutableList()
+        adapter = LogAdapter(logs, isDarkMode)
+        recyclerView.adapter = adapter
+        recyclerView.scrollToPosition((logs.size - 1).coerceAtLeast(0))
     }
 }

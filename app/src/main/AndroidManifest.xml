@@ -14,7 +14,8 @@
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
         <!-- Boot Receiver -->
-        <receiver android:name=".BootReceiver"
+        <receiver
+            android:name=".BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -23,7 +24,8 @@
         </receiver>
 
         <!-- Main Activity -->
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -32,8 +34,23 @@
         </activity>
 
         <!-- Log Viewer Activity -->
-        <activity android:name=".LogViewerActivity"
+        <activity
+            android:name=".LogViewerActivity"
             android:exported="true"
             android:label="History Logs"/>
+
+        <!-- Accessibility Service for Security Attempts -->
+        <service
+            android:name=".MyAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_config" />
+        </service>
+
     </application>
 </manifest>
