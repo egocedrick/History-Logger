@@ -42,5 +42,3 @@ An Android application built with Kotlin that logs and displays user activities 
 - Demonstrates system‑level logging and UI integration.
 - Part of my mobile security and utility portfolio.
 
-## 📄 License
-MIT License (or specify your license here)
