@@ -12,7 +12,7 @@ class BootReceiver : BroadcastReceiver() {
             val lastActiveFile = context.filesDir.resolve("last_active.txt")
             val lastActive = if (lastActiveFile.exists()) lastActiveFile.readText().toLongOrNull() else null
 
-            // ✅ Safe Mode detection using ActivityManager
+            // Safe Mode detection using ActivityManager
             val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             val safeModeMethod = ActivityManager::class.java.getMethod("isRunningInSafeMode")
             val isSafeMode = safeModeMethod.invoke(am) as Boolean
@@ -23,7 +23,7 @@ class BootReceiver : BroadcastReceiver() {
                 logToFile(context, "INFO", "Device booted normally (not Safe Mode)")
             }
 
-            // ✅ Gap analysis
+            // Gap analysis
             if (lastActive != null) {
                 val gapMinutes = (now - lastActive) / 1000 / 60
                 if (gapMinutes > 30) {
@@ -35,7 +35,7 @@ class BootReceiver : BroadcastReceiver() {
                 logToFile(context, "INFO", "Boot completed. No previous timestamp recorded.")
             }
 
-            // ✅ Save current timestamp
+            // Save current timestamp
             lastActiveFile.writeText(now.toString())
         }
     }

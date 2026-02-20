@@ -31,10 +31,8 @@ class LogAdapter(private val logs: List<LogEntry>, private val isDarkMode: Boole
         val log = logs[position]
         holder.textView.text = "${log.timestamp} | [${log.type}] ${log.message}"
 
-        // Background by theme
         holder.textView.setBackgroundColor(if (isDarkMode) Color.BLACK else Color.WHITE)
 
-        // Color coding by type
         when (log.type.uppercase()) {
             "SAFE_MODE" -> holder.textView.setTextColor(Color.RED)
             "SECURITY" -> holder.textView.setTextColor(Color.parseColor("#FF4500")) // orange-red
@@ -55,7 +53,6 @@ class LogViewerActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Root layout
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(32, 32, 32, 32)
@@ -65,7 +62,6 @@ class LogViewerActivity : AppCompatActivity() {
             )
         }
 
-        // Buttons
         val refreshButton = Button(this).apply {
             text = "Refresh Logs"
             setOnClickListener { loadLogsAndRefreshUI() }
@@ -81,7 +77,6 @@ class LogViewerActivity : AppCompatActivity() {
             }
         }
 
-        // RecyclerView
         recyclerView = RecyclerView(this).apply {
             layoutManager = LinearLayoutManager(this@LogViewerActivity)
             layoutParams = LinearLayout.LayoutParams(
@@ -91,13 +86,11 @@ class LogViewerActivity : AppCompatActivity() {
             )
         }
 
-        // Assemble layout
         layout.addView(refreshButton)
         layout.addView(toggleDarkButton)
         layout.addView(recyclerView)
         setContentView(layout)
 
-        // Initial
         applyThemeColors(layout)
         loadLogsAndRefreshUI()
     }

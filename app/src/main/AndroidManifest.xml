@@ -2,7 +2,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.example.historylogger">
 
-    <!-- Permissions -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
@@ -13,7 +12,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.NoActionBar">
 
-        <!-- Boot Receiver -->
         <receiver
             android:name=".BootReceiver"
             android:enabled="true"
@@ -23,7 +21,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- Main Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -33,13 +30,11 @@
             </intent-filter>
         </activity>
 
-        <!-- Log Viewer Activity -->
         <activity
             android:name=".LogViewerActivity"
             android:exported="true"
             android:label="History Logs"/>
 
-        <!-- Accessibility Service for Security Attempts -->
         <service
             android:name=".MyAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
