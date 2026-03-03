@@ -13,6 +13,12 @@ An Android application built with Kotlin that logs and displays user activities 
 - **Save & Share**
   - Logs can be saved locally and shared externally.
 
+## Impact
+- Monitors user activity on the device.
+- Detects bugs, crashes, or errors through activity logs.
+- Prevents unnecessary actions by identifying risky behaviors.
+- Identifies features that trigger crashes or bugs.
+
 ## In Progress
 - **Filtering**
   - Ability to filter logs to show only relevant activities.
